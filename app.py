@@ -1,12 +1,17 @@
+import os
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 app.secret_key = "chave_secreta_loja_refrigerantes"
 
+# Caminho absoluto para garantir que o SQLite crie o arquivo no local correto na Render
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "loja_refrigerantes.db")
+
 # --- BANCO DE DADOS ---
 def get_db_connection():
-    conn = sqlite3.connect("loja_refrigerantes.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -35,6 +40,10 @@ def init_db():
     ''')
     conn.commit()
     conn.close()
+
+# Executa a criação do banco de dados na inicialização do servidor
+with app.app_context():
+    init_db()
 
 # --- ROTAS ---
 @app.route('/')
@@ -88,7 +97,7 @@ def vender():
         conn.commit()
 
     conn.close()
-    return redirect(url_for('index')) 
-init_db()
+    return redirect(url_for('index'))
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
